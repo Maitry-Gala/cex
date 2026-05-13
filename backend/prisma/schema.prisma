@@ -11,3 +11,71 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Side {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  LIMIT
+  MARKET
+}
+
+enum Status {
+  OPEN
+  FILLED
+  CANCELLED
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  username String
+  password String
+
+  orders   Order[]
+}
+
+model Order {
+  id               Int      @id @default(autoincrement())
+
+  userId           Int
+  user             User     @relation(fields: [userId], references: [id])
+
+  side             Side
+  type             OrderType
+
+  stockId          Int
+  stock            Stock    @relation(fields: [stockId], references: [id])
+
+  price            Int
+  filledQuantity   Int
+  quantity         Int
+
+  status           Status
+
+  buyFills         Fill[]   @relation("BuyOrderFill")
+  sellFills        Fill[]   @relation("SellOrderFill")
+}
+
+model Stock {
+  id       Int      @id @default(autoincrement())
+  title    String
+  symbol   String
+
+  orders   Order[]
+}
+
+model Fill {
+  id             Int      @id @default(autoincrement())
+
+  stockId        Int
+  price          Decimal  @db.Decimal(10, 2)
+
+  buyOrderId     Int
+  sellOrderId    Int
+
+  buyOrder       Order    @relation("BuyOrderFill", fields: [buyOrderId], references: [id])
+
+  sellOrder      Order    @relation("SellOrderFill", fields: [sellOrderId], references: [id])
+}
